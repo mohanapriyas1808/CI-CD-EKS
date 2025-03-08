@@ -41,6 +41,16 @@ jobs:
         env:
           DOCKER_CLI_ACI: 1
       - name: Image scan
-        run: trivy image sevenajay/tic-tac-toe:latest > trivyimage.txt
+        run: trivy image mohanapriya18/tic-tac-toe:latest > trivyimage.txt
+  deploy:
+    needs: build-analyze-scan
+    runs-on: [self-hosted]
+    steps:
+      - name: docker pull image
+        run: docker pull mohanapriya18/tic-tac-toe:latest
+
+      - name: Image scan
+        run: trivy image mohanapriya18/tic-tac-toe:latest > trivyimagedeploy.txt
+
       - name: Deploy to container
         run: docker run -d --name game -p 3000:3000 mohanapriya18/tic-tac-toe:latest
