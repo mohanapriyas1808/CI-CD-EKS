@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0 # Shallow clones should be disabled for better analysis relevancy
+          fetch-depth: 0  # Shallow clones should be disabled for better analysis relevancy
 
       - name: Setup Node.js
         uses: actions/setup-node@v2
@@ -36,12 +36,14 @@ jobs:
         run: |
           docker build -t tic-tac-toe .
           docker tag tic-tac-toe mohanapriya18/tic-tac-toe:latest
-          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
           docker push mohanapriya18/tic-tac-toe:latest
         env:
           DOCKER_CLI_ACI: 1
+
       - name: Image scan
         run: trivy image mohanapriya18/tic-tac-toe:latest > trivyimage.txt
+
   deploy:
     needs: build-analyze-scan
     runs-on: [self-hosted]
@@ -53,5 +55,6 @@ jobs:
         run: trivy image mohanapriya18/tic-tac-toe:latest > trivyimagedeploy.txt
 
       - name: Deploy to container
-        run: docker run -d --name game -p 3000:3000 mohanapriya18/tic-tac-toe:latest
-        
+        run: |
+          docker rm -f game || true
+          docker run -d --name game -p 3000:3000 mohanapriya18/tic-tac-toe:latest
